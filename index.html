@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ABC LD - Arena Blended Connected Learning Design Tool</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <h1><i class="fas fa-graduation-cap"></i> ABC LD</h1>
+            <span class="subtitle">Arena Blended Connected Learning Design Tool</span>
+        </div>
+        <div class="header-right">
+            <input type="text" id="boardTitle" class="board-title-input" placeholder="Enter Module Title..." value="My Learning Design">
+            <div class="header-actions">
+                <button class="btn btn-secondary" onclick="loadFromJSON()" title="Load Design">
+                    <i class="fas fa-folder-open"></i> Load
+                </button>
+                <button class="btn btn-secondary" onclick="saveToJSON()" title="Save Design">
+                    <i class="fas fa-save"></i> Save
+                </button>
+                <button class="btn btn-secondary" onclick="exportToImage()" title="Export as Image">
+                    <i class="fas fa-image"></i> Image
+                </button>
+                <button class="btn btn-secondary" onclick="exportToPDF()" title="Export as PDF">
+                    <i class="fas fa-file-pdf"></i> PDF
+                </button>
+                <button class="btn btn-primary" onclick="addWeek()" title="Add Week">
+                    <i class="fas fa-plus"></i> Add Week
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Legend -->
+    <div class="legend">
+        <span class="legend-title">Learning Types (Laurillard's Conversational Framework):</span>
+        <div class="legend-items">
+            <span class="chip chip-acquisition">Acquisition</span>
+            <span class="chip chip-collaboration">Collaboration</span>
+            <span class="chip chip-discussion">Discussion</span>
+            <span class="chip chip-investigation">Investigation</span>
+            <span class="chip chip-practice">Practice</span>
+            <span class="chip chip-production">Production</span>
+        </div>
+        <span class="legend-title">Delivery:</span>
+        <div class="legend-items">
+            <span class="delivery-badge delivery-lecture">Lecture</span>
+            <span class="delivery-badge delivery-tutorial">Tutorial</span>
+            <span class="delivery-badge delivery-lab">Lab</span>
+            <span class="delivery-badge delivery-remote">Remote</span>
+            <span class="delivery-badge delivery-blended">Blended</span>
+            <span class="delivery-badge delivery-assessment">Assessment</span>
+        </div>
+    </div>
+
+    <!-- Board Container -->
+    <div class="board-wrapper">
+        <div class="board" id="board">
+            <!-- Weeks (Swim Lanes) will be dynamically added here -->
+        </div>
+    </div>
+
+    <!-- Card Modal -->
+    <div class="modal" id="cardModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add Learning Activity</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="cardForm">
+                    <input type="hidden" id="cardId">
+                    <input type="hidden" id="cardWeek">
+                    
+                    <div class="form-group">
+                        <label for="activityTitle">Activity Title *</label>
+                        <input type="text" id="activityTitle" required placeholder="e.g., Introduction to Blockchain">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="deliveryDate">Delivery Date</label>
+                            <input type="date" id="deliveryDate">
+                        </div>
+                        <div class="form-group">
+                            <label for="duration">Duration</label>
+                            <input type="text" id="duration" placeholder="e.g., 1.5 hours">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="deliveredBy">Delivered By</label>
+                        <input type="text" id="deliveredBy" placeholder="e.g., Dr. Smith">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea id="description" rows="3" placeholder="Describe the learning activity..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Learning Types (select all that apply)</label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="learningType" value="acquisition">
+                                <span class="chip chip-acquisition chip-small">Acquisition</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="learningType" value="collaboration">
+                                <span class="chip chip-collaboration chip-small">Collaboration</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="learningType" value="discussion">
+                                <span class="chip chip-discussion chip-small">Discussion</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="learningType" value="investigation">
+                                <span class="chip chip-investigation chip-small">Investigation</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="learningType" value="practice">
+                                <span class="chip chip-practice chip-small">Practice</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="learningType" value="production">
+                                <span class="chip chip-production chip-small">Production</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="deliveryStyle">Delivery Style / Environment</label>
+                        <select id="deliveryStyle">
+                            <option value="">Select delivery style...</option>
+                            <option value="lecture">Lecture</option>
+                            <option value="tutorial">Tutorial</option>
+                            <option value="lab">Lab</option>
+                            <option value="remote">Remote</option>
+                            <option value="blended">Blended</option>
+                            <option value="assessment">Assessment</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="assessmentType">Assessment Type (if applicable)</label>
+                        <select id="assessmentType">
+                            <option value="">Not an assessment</option>
+                            <option value="formative">Formative Assessment</option>
+                            <option value="summative">Summative Assessment</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="notes">Additional Notes</label>
+                        <textarea id="notes" rows="2" placeholder="UDL considerations, resources needed, etc."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" id="deleteCardBtn" onclick="deleteCard()" style="display: none;">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+                <div class="modal-footer-right">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveCard()">
+                        <i class="fas fa-check"></i> Save Activity
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Week Settings Modal -->
+    <div class="modal" id="weekModal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h2>Week Settings</h2>
+                <button class="modal-close" onclick="closeWeekModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="weekId">
+                <div class="form-group">
+                    <label for="weekTitle">Week Title</label>
+                    <input type="text" id="weekTitle" placeholder="e.g., Week 1">
+                </div>
+                <div class="form-group">
+                    <label for="weekStartDate">Start Date</label>
+                    <input type="date" id="weekStartDate">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" onclick="deleteWeek()">
+                    <i class="fas fa-trash"></i> Delete Week
+                </button>
+                <div class="modal-footer-right">
+                    <button type="button" class="btn btn-secondary" onclick="closeWeekModal()">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveWeekSettings()">
+                        <i class="fas fa-check"></i> Save
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="modal" id="confirmModal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h2 id="confirmTitle">Confirm</h2>
+                <button class="modal-close" onclick="closeConfirmModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeConfirmModal()">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmBtn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden file input for loading JSON -->
+    <input type="file" id="fileInput" accept=".json" style="display: none;">
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
