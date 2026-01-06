@@ -6,6 +6,10 @@ A client-side web application for creating ABC Learning Design module plans base
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Pure JS](https://img.shields.io/badge/javascript-vanilla-yellow)
 
+## Screenshot
+
+![ABC LD Screenshot](screenshot.png)
+
 ## Overview
 
 ABC LD (Arena Blended Connected Learning Design) is a visual planning tool that helps educators design and map out their module delivery across weeks. It uses a Kanban-style board with swim lanes for each week, allowing you to create, organize, and visualize learning activities.
