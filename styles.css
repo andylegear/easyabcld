@@ -3,7 +3,7 @@
    Styles
    ===================================================== */
 
-/* CSS Variables */
+/* CSS Variables - Dark Theme (Default) */
 :root {
     /* Primary Colors */
     --primary-color: #4a90a4;
@@ -54,6 +54,57 @@
     --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.4);
     --radius: 8px;
     --radius-lg: 12px;
+}
+
+/* Light Theme */
+[data-theme="light"] {
+    /* Primary Colors */
+    --primary-color: #2e7d8a;
+    --primary-dark: #1e6d7a;
+    --primary-light: #4a9daa;
+    
+    /* Background Colors */
+    --bg-dark: #ffffff;
+    --bg-darker: #f5f7fa;
+    --bg-card: #ffffff;
+    --bg-card-hover: #f0f4f8;
+    --bg-input: #f5f7fa;
+    
+    /* Text Colors */
+    --text-primary: #1a1a2e;
+    --text-secondary: #4a5568;
+    --text-muted: #718096;
+    
+    /* Learning Type Colors (slightly darker for light bg) */
+    --acquisition: #0288d1;
+    --acquisition-bg: rgba(2, 136, 209, 0.15);
+    --collaboration: #388e3c;
+    --collaboration-bg: rgba(56, 142, 60, 0.15);
+    --discussion: #f57c00;
+    --discussion-bg: rgba(245, 124, 0, 0.15);
+    --investigation: #7b1fa2;
+    --investigation-bg: rgba(123, 31, 162, 0.15);
+    --practice: #c2185b;
+    --practice-bg: rgba(194, 24, 91, 0.15);
+    --production: #00796b;
+    --production-bg: rgba(0, 121, 107, 0.15);
+    
+    /* Delivery Style Colors */
+    --lecture: #3f51b5;
+    --tutorial: #00897b;
+    --lab: #e53935;
+    --remote: #8e24aa;
+    --blended: #1e88e5;
+    --assessment: #fb8c00;
+    
+    /* Assessment Colors */
+    --formative: #43a047;
+    --summative: #e53935;
+    
+    /* Other */
+    --border-color: #e2e8f0;
+    --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.15);
 }
 
 /* Reset & Base Styles */
@@ -174,6 +225,23 @@ body {
 .btn-small {
     padding: 4px 8px;
     font-size: 0.8rem;
+}
+
+.btn-icon {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-icon:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--primary-color);
 }
 
 /* Legend */

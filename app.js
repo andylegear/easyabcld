@@ -24,6 +24,7 @@ let confirmCallback = null;
 // =====================================================
 
 document.addEventListener('DOMContentLoaded', () => {
+    initializeTheme();
     initializeBoard();
     setupEventListeners();
     createToastContainer();
@@ -473,34 +474,48 @@ function exportToImage() {
     const board = document.getElementById('board');
     const boardWrapper = document.querySelector('.board-wrapper');
     
+    // Get current theme
+    const isDarkMode = document.documentElement.getAttribute('data-theme') !== 'light';
+    const bgColor = isDarkMode ? '#16162a' : '#f5f7fa';
+    
+    // Apply inline styles before capture
+    applyInlineStylesForExport(isDarkMode);
+    
     // Temporarily expand the board for full capture
     const originalOverflow = boardWrapper.style.overflow;
     boardWrapper.style.overflow = 'visible';
     
-    html2canvas(board, {
-        backgroundColor: '#16162a',
-        scale: 2,
-        logging: false,
-        useCORS: true,
-        allowTaint: true,
-        scrollX: 0,
-        scrollY: 0,
-        windowWidth: board.scrollWidth,
-        windowHeight: board.scrollHeight
-    }).then(canvas => {
-        boardWrapper.style.overflow = originalOverflow;
-        
-        const link = document.createElement('a');
-        link.download = `${sanitizeFilename(boardData.title)}_${getDateString()}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-        
-        showToast('Image exported successfully', 'success');
-    }).catch(err => {
-        boardWrapper.style.overflow = originalOverflow;
-        console.error('Export error:', err);
-        showToast('Error exporting image', 'error');
-    });
+    // Small delay to ensure styles are applied
+    setTimeout(() => {
+        html2canvas(board, {
+            backgroundColor: bgColor,
+            scale: 2,
+            logging: false,
+            useCORS: true,
+            allowTaint: true,
+            scrollX: 0,
+            scrollY: 0,
+            windowWidth: board.scrollWidth,
+            windowHeight: board.scrollHeight
+        }).then(canvas => {
+            boardWrapper.style.overflow = originalOverflow;
+            
+            // Remove inline styles after capture
+            removeInlineStylesAfterExport();
+            
+            const link = document.createElement('a');
+            link.download = `${sanitizeFilename(boardData.title)}_${getDateString()}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            
+            showToast('Image exported successfully', 'success');
+        }).catch(err => {
+            boardWrapper.style.overflow = originalOverflow;
+            removeInlineStylesAfterExport();
+            console.error('Export error:', err);
+            showToast('Error exporting image', 'error');
+        });
+    }, 100);
 }
 
 function exportToPDF() {
@@ -509,52 +524,301 @@ function exportToPDF() {
     const board = document.getElementById('board');
     const boardWrapper = document.querySelector('.board-wrapper');
     
+    // Get current theme
+    const isDarkMode = document.documentElement.getAttribute('data-theme') !== 'light';
+    const bgColor = isDarkMode ? '#16162a' : '#f5f7fa';
+    
+    // Apply inline styles before capture
+    applyInlineStylesForExport(isDarkMode);
+    
     const originalOverflow = boardWrapper.style.overflow;
     boardWrapper.style.overflow = 'visible';
     
-    html2canvas(board, {
-        backgroundColor: '#16162a',
-        scale: 2,
-        logging: false,
-        useCORS: true,
-        allowTaint: true,
-        scrollX: 0,
-        scrollY: 0,
-        windowWidth: board.scrollWidth,
-        windowHeight: board.scrollHeight
-    }).then(canvas => {
-        boardWrapper.style.overflow = originalOverflow;
-        
-        const { jsPDF } = window.jspdf;
-        
-        const imgWidth = canvas.width;
-        const imgHeight = canvas.height;
-        
-        // Calculate PDF dimensions (landscape for board layout)
-        const pdfWidth = imgWidth * 0.264583; // Convert pixels to mm at 96 DPI
-        const pdfHeight = imgHeight * 0.264583;
-        
-        const pdf = new jsPDF({
-            orientation: pdfWidth > pdfHeight ? 'landscape' : 'portrait',
-            unit: 'mm',
-            format: [pdfWidth, pdfHeight]
+    // Small delay to ensure styles are applied
+    setTimeout(() => {
+        html2canvas(board, {
+            backgroundColor: bgColor,
+            scale: 2,
+            logging: false,
+            useCORS: true,
+            allowTaint: true,
+            scrollX: 0,
+            scrollY: 0,
+            windowWidth: board.scrollWidth,
+            windowHeight: board.scrollHeight
+        }).then(canvas => {
+            boardWrapper.style.overflow = originalOverflow;
+            
+            // Remove inline styles after capture
+            removeInlineStylesAfterExport();
+            
+            const { jsPDF } = window.jspdf;
+            
+            const imgWidth = canvas.width;
+            const imgHeight = canvas.height;
+            
+            // Calculate PDF dimensions (landscape for board layout)
+            const pdfWidth = imgWidth * 0.264583; // Convert pixels to mm at 96 DPI
+            const pdfHeight = imgHeight * 0.264583;
+            
+            const pdf = new jsPDF({
+                orientation: pdfWidth > pdfHeight ? 'landscape' : 'portrait',
+                unit: 'mm',
+                format: [pdfWidth, pdfHeight]
+            });
+            
+            const imgData = canvas.toDataURL('image/png');
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            
+            pdf.save(`${sanitizeFilename(boardData.title)}_${getDateString()}.pdf`);
+            
+            showToast('PDF exported successfully', 'success');
+        }).catch(err => {
+            boardWrapper.style.overflow = originalOverflow;
+            removeInlineStylesAfterExport();
+            console.error('Export error:', err);
+            showToast('Error exporting PDF', 'error');
         });
-        
-        // Add title
-        pdf.setFontSize(24);
-        pdf.setTextColor(255, 255, 255);
-        
-        const imgData = canvas.toDataURL('image/png');
-        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-        
-        pdf.save(`${sanitizeFilename(boardData.title)}_${getDateString()}.pdf`);
-        
-        showToast('PDF exported successfully', 'success');
-    }).catch(err => {
-        boardWrapper.style.overflow = originalOverflow;
-        console.error('Export error:', err);
-        showToast('Error exporting PDF', 'error');
+    }, 100);
+}
+
+/**
+ * Apply inline styles directly to DOM elements for export
+ */
+function applyInlineStylesForExport(isDarkMode) {
+    const colors = isDarkMode ? {
+        textPrimary: '#ffffff',
+        textSecondary: '#b0b0c0',
+        textMuted: '#707080',
+        bgDarker: '#16162a',
+        bgDark: '#1a1a2e',
+        bgCard: '#242444',
+        borderColor: '#3a3a5a',
+        acquisition: '#4fc3f7',
+        acquisitionBg: '#0d2933',
+        collaboration: '#81c784',
+        collaborationBg: '#0d2910',
+        discussion: '#ffb74d',
+        discussionBg: '#33220d',
+        investigation: '#ba68c8',
+        investigationBg: '#200d29',
+        practice: '#f06292',
+        practiceBg: '#330d1a',
+        production: '#4db6ac',
+        productionBg: '#0d2926',
+        lecture: '#5c6bc0',
+        tutorial: '#26a69a',
+        lab: '#ef5350',
+        remote: '#ab47bc',
+        blended: '#42a5f5',
+        assessment: '#ffa726',
+        formative: '#66bb6a',
+        formativeBg: '#0d290d',
+        summative: '#ef5350',
+        summativeBg: '#330d0d'
+    } : {
+        textPrimary: '#1a1a2e',
+        textSecondary: '#4a5568',
+        textMuted: '#718096',
+        bgDarker: '#f5f7fa',
+        bgDark: '#ffffff',
+        bgCard: '#ffffff',
+        borderColor: '#d0d7de',
+        acquisition: '#0277bd',
+        acquisitionBg: '#e1f5fe',
+        collaboration: '#2e7d32',
+        collaborationBg: '#e8f5e9',
+        discussion: '#ef6c00',
+        discussionBg: '#fff3e0',
+        investigation: '#6a1b9a',
+        investigationBg: '#f3e5f5',
+        practice: '#ad1457',
+        practiceBg: '#fce4ec',
+        production: '#00695c',
+        productionBg: '#e0f2f1',
+        lecture: '#3949ab',
+        tutorial: '#00796b',
+        lab: '#d32f2f',
+        remote: '#7b1fa2',
+        blended: '#1976d2',
+        assessment: '#f57c00',
+        formative: '#388e3c',
+        formativeBg: '#e8f5e9',
+        summative: '#d32f2f',
+        summativeBg: '#ffebee'
+    };
+
+    // Board
+    const board = document.getElementById('board');
+    board.style.backgroundColor = colors.bgDarker;
+    board.dataset.exportStyled = 'true';
+
+    // Week columns
+    document.querySelectorAll('.week-column').forEach(el => {
+        el.style.backgroundColor = colors.bgDark;
+        el.style.borderColor = colors.borderColor;
+        el.dataset.exportStyled = 'true';
     });
+
+    // Week headers
+    document.querySelectorAll('.week-header').forEach(el => {
+        el.style.backgroundColor = colors.bgDark;
+        el.style.borderBottomColor = colors.borderColor;
+        el.dataset.exportStyled = 'true';
+    });
+
+    // Week content
+    document.querySelectorAll('.week-content').forEach(el => {
+        el.style.backgroundColor = colors.bgDark;
+        el.dataset.exportStyled = 'true';
+    });
+
+    // Week titles
+    document.querySelectorAll('.week-title').forEach(el => {
+        el.style.color = colors.textPrimary;
+        el.dataset.exportStyled = 'true';
+    });
+
+    // Week dates
+    document.querySelectorAll('.week-date').forEach(el => {
+        el.style.color = colors.textMuted;
+        el.dataset.exportStyled = 'true';
+    });
+
+    // Cards
+    document.querySelectorAll('.card').forEach(el => {
+        el.style.backgroundColor = colors.bgCard;
+        el.style.borderColor = colors.borderColor;
+        el.dataset.exportStyled = 'true';
+    });
+
+    // Card titles
+    document.querySelectorAll('.card-title').forEach(el => {
+        el.style.color = colors.textPrimary;
+        el.dataset.exportStyled = 'true';
+    });
+
+    // Card meta
+    document.querySelectorAll('.card-date, .card-duration, .card-instructor').forEach(el => {
+        el.style.color = colors.textSecondary;
+        el.dataset.exportStyled = 'true';
+    });
+
+    // Card descriptions
+    document.querySelectorAll('.card-description').forEach(el => {
+        el.style.color = colors.textSecondary;
+        el.dataset.exportStyled = 'true';
+    });
+
+    // Card notes
+    document.querySelectorAll('.card-notes').forEach(el => {
+        el.style.color = colors.textMuted;
+        el.style.borderTopColor = colors.borderColor;
+        el.dataset.exportStyled = 'true';
+    });
+
+    // Learning type chips
+    const chipMap = {
+        'chip-acquisition': { color: colors.acquisition, bg: colors.acquisitionBg },
+        'chip-collaboration': { color: colors.collaboration, bg: colors.collaborationBg },
+        'chip-discussion': { color: colors.discussion, bg: colors.discussionBg },
+        'chip-investigation': { color: colors.investigation, bg: colors.investigationBg },
+        'chip-practice': { color: colors.practice, bg: colors.practiceBg },
+        'chip-production': { color: colors.production, bg: colors.productionBg }
+    };
+
+    Object.entries(chipMap).forEach(([className, style]) => {
+        document.querySelectorAll(`.${className}`).forEach(el => {
+            el.style.color = style.color;
+            el.style.backgroundColor = style.bg;
+            el.style.borderColor = style.color;
+            el.dataset.exportStyled = 'true';
+        });
+    });
+
+    // Delivery badges
+    const deliveryMap = {
+        'delivery-lecture': colors.lecture,
+        'delivery-tutorial': colors.tutorial,
+        'delivery-lab': colors.lab,
+        'delivery-remote': colors.remote,
+        'delivery-blended': colors.blended,
+        'delivery-assessment': colors.assessment
+    };
+
+    Object.entries(deliveryMap).forEach(([className, color]) => {
+        document.querySelectorAll(`.${className}`).forEach(el => {
+            el.style.backgroundColor = color;
+            el.style.color = '#ffffff';
+            el.dataset.exportStyled = 'true';
+        });
+    });
+
+    // Assessment badges
+    document.querySelectorAll('.assessment-formative').forEach(el => {
+        el.style.color = colors.formative;
+        el.style.backgroundColor = colors.formativeBg;
+        el.style.borderColor = colors.formative;
+        el.dataset.exportStyled = 'true';
+    });
+
+    document.querySelectorAll('.assessment-summative').forEach(el => {
+        el.style.color = colors.summative;
+        el.style.backgroundColor = colors.summativeBg;
+        el.style.borderColor = colors.summative;
+        el.dataset.exportStyled = 'true';
+    });
+
+    // Icons - ensure they inherit color
+    document.querySelectorAll('.card i, .card-meta i, .card-notes i').forEach(el => {
+        el.style.color = 'inherit';
+        el.dataset.exportStyled = 'true';
+    });
+
+    // Hide buttons
+    document.querySelectorAll('.add-card-btn').forEach(el => {
+        el.style.display = 'none';
+        el.dataset.exportStyled = 'true';
+    });
+
+    document.querySelectorAll('.week-header-actions').forEach(el => {
+        el.style.display = 'none';
+        el.dataset.exportStyled = 'true';
+    });
+}
+
+/**
+ * Remove inline styles after export
+ */
+function removeInlineStylesAfterExport() {
+    document.querySelectorAll('[data-export-styled]').forEach(el => {
+        el.style.backgroundColor = '';
+        el.style.borderColor = '';
+        el.style.borderBottomColor = '';
+        el.style.borderTopColor = '';
+        el.style.color = '';
+        el.style.display = '';
+        delete el.dataset.exportStyled;
+    });
+}
+
+/**
+ * Apply computed styles directly to cloned elements for html2canvas
+ * This ensures CSS variables are properly resolved for export
+ */
+function applyComputedStylesToClone(clonedDoc, isDarkMode) {
+    // This function is kept for backwards compatibility but 
+    // we now use applyInlineStylesForExport instead
+}
+
+/**
+ * Convert hex color to rgba string
+ */
+function hexToRgba(hex, alpha) {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
 function saveToJSON() {
@@ -725,6 +989,37 @@ function sanitizeFilename(name) {
 }
 
 // =====================================================
+// Theme Management
+// =====================================================
+
+function initializeTheme() {
+    const savedTheme = localStorage.getItem('abcld_theme') || 'dark';
+    setTheme(savedTheme);
+}
+
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+    showToast(`Switched to ${newTheme} mode`, 'info');
+}
+
+function setTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('abcld_theme', theme);
+    
+    // Update icon
+    const themeIcon = document.getElementById('themeIcon');
+    if (themeIcon) {
+        if (theme === 'dark') {
+            themeIcon.className = 'fas fa-moon';
+        } else {
+            themeIcon.className = 'fas fa-sun';
+        }
+    }
+}
+
+// =====================================================
 // Keyboard Shortcuts
 // =====================================================
 
@@ -743,6 +1038,11 @@ document.addEventListener('keydown', (e) => {
     if (e.ctrlKey && e.key === 'e') {
         e.preventDefault();
         exportToImage();
+    }
+    // Ctrl+T to toggle theme
+    if (e.ctrlKey && e.key === 't') {
+        e.preventDefault();
+        toggleTheme();
     }
 });
 
